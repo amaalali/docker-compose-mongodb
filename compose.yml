@@ -1,0 +1,42 @@
+services:
+  mongodb:
+    image: percona/percona-server-mongodb:7.0-multi
+    container_name: mongodb
+    command: ["mongod", "--replSet", "rs0"]
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - mongo-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+      start_interval: 5s
+
+
+  rs-init:
+    image: percona/percona-server-mongodb:7.0-multi
+    container_name: rs-init
+    restart: "no"
+    networks:
+      - mongo-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+        restart: true
+    entrypoint:
+      - /bin/sh
+      - -c
+      - mongosh --host mongodb:27017 --eval 'rs.initiate()'
+
+networks:
+  mongo-network:
+
+volumes:
+  mongo-data:
+    external: true # this volume must be created first
