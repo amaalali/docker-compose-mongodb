@@ -6,9 +6,9 @@ services:
     ports:
       - 27017:27017
     volumes:
-      - mongo-data:/data/db
+      - mongodb:/data/db
     networks:
-      - mongo-network
+      - mongodb-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
@@ -24,7 +24,7 @@ services:
     container_name: rs-init
     restart: "no"
     networks:
-      - mongo-network
+      - mongodb-network
     depends_on:
       mongodb:
         condition: service_healthy
@@ -35,7 +35,7 @@ services:
       - mongosh --host mongodb:27017 --eval 'rs.initiate({_id:"rs0", members:[{_id:0, host:"mongodb:27017"}]});'
 
 networks:
-  mongo-network:
+  mongodb-network:
 
 volumes:
   mongo-data:
